@@ -117,7 +117,7 @@ private:
     void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems);
 
 
-	void BuildShape(string shapeName, float ScaleX, float ScaleY, float ScaleZ, float OffsetX, float OffsetY, float OffsetZ, float xRotaion = 0.0f, float yRotation = 0.0f, float ZRotation = 0.0f);
+	void BuildShape(string shapeName, string textureName, float ScaleX, float ScaleY, float ScaleZ, float OffsetX, float OffsetY, float OffsetZ, float xRotaion = 0.0f, float yRotation = 0.0f, float ZRotation = 0.0f);
 
 
 	std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers();
@@ -576,12 +576,47 @@ void TreeBillboardsApp::LoadTextures()
 		mCommandList.Get(), waterTex->Filename.c_str(),
 		waterTex->Resource, waterTex->UploadHeap));
 
-	auto fenceTex = std::make_unique<Texture>();
-	fenceTex->Name = "fenceTex";
-	fenceTex->Filename = L"../../Textures/WireFence.dds";
+	auto drawBrigeTex = std::make_unique<Texture>();
+	drawBrigeTex->Name = "drawBrigeTex";
+	drawBrigeTex->Filename = L"../../Textures/DrawBridge.dds";
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
-		mCommandList.Get(), fenceTex->Filename.c_str(),
-		fenceTex->Resource, fenceTex->UploadHeap));
+		mCommandList.Get(), drawBrigeTex->Filename.c_str(),
+		drawBrigeTex->Resource, drawBrigeTex->UploadHeap));
+
+	auto blackStoneTex = std::make_unique<Texture>();
+	blackStoneTex->Name = "blackStoneTex";
+	blackStoneTex->Filename = L"../../Textures/BlackStone.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), blackStoneTex->Filename.c_str(),
+		blackStoneTex->Resource, blackStoneTex->UploadHeap));
+
+	auto bloodStoneTex = std::make_unique<Texture>();
+	bloodStoneTex->Name = "bloodStoneTex";
+	bloodStoneTex->Filename = L"../../Textures/BloodStone.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), bloodStoneTex->Filename.c_str(),
+		bloodStoneTex->Resource, bloodStoneTex->UploadHeap));
+
+	auto jadeWoodTex = std::make_unique<Texture>();
+	jadeWoodTex->Name = "jadeWoodTex";
+	jadeWoodTex->Filename = L"../../Textures/JadeWood.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), jadeWoodTex->Filename.c_str(),
+		jadeWoodTex->Resource, jadeWoodTex->UploadHeap));
+
+	auto poleTex = std::make_unique<Texture>();
+	poleTex->Name = "poleTex";
+	poleTex->Filename = L"../../Textures/Pole.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), poleTex->Filename.c_str(),
+		poleTex->Resource, poleTex->UploadHeap));
+
+	auto wellTex = std::make_unique<Texture>();
+	wellTex->Name = "wellTex";
+	wellTex->Filename = L"../../Textures/Well.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), wellTex->Filename.c_str(),
+		wellTex->Resource, wellTex->UploadHeap));
 
 	auto treeArrayTex = std::make_unique<Texture>();
 	treeArrayTex->Name = "treeArrayTex";
@@ -592,7 +627,12 @@ void TreeBillboardsApp::LoadTextures()
 
 	mTextures[grassTex->Name] = std::move(grassTex);
 	mTextures[waterTex->Name] = std::move(waterTex);
-	mTextures[fenceTex->Name] = std::move(fenceTex);
+	mTextures[drawBrigeTex->Name] = std::move(drawBrigeTex);
+	mTextures[blackStoneTex->Name] = std::move(blackStoneTex);
+	mTextures[bloodStoneTex->Name] = std::move(bloodStoneTex);
+	mTextures[jadeWoodTex->Name] = std::move(jadeWoodTex);
+	mTextures[poleTex->Name] = std::move(poleTex);
+	mTextures[wellTex->Name] = std::move(wellTex);
 	mTextures[treeArrayTex->Name] = std::move(treeArrayTex);
 }
 
@@ -642,7 +682,7 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 4;
+	srvHeapDesc.NumDescriptors = 9;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -654,7 +694,12 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 
 	auto grassTex = mTextures["grassTex"]->Resource;
 	auto waterTex = mTextures["waterTex"]->Resource;
-	auto fenceTex = mTextures["fenceTex"]->Resource;
+	auto drawBrigeTex = mTextures["drawBrigeTex"]->Resource;
+	auto blackStoneTex = mTextures["blackStoneTex"]->Resource;
+	auto bloodStoneTex = mTextures["bloodStoneTex"]->Resource;
+	auto jadeWoodTex = mTextures["jadeWoodTex"]->Resource;
+	auto poleTex = mTextures["poleTex"]->Resource;
+	auto wellTex = mTextures["wellTex"]->Resource;
 	auto treeArrayTex = mTextures["treeArrayTex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -674,8 +719,38 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	// next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 
-	srvDesc.Format = fenceTex->GetDesc().Format;
-	md3dDevice->CreateShaderResourceView(fenceTex.Get(), &srvDesc, hDescriptor);
+	srvDesc.Format = drawBrigeTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(drawBrigeTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = blackStoneTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(blackStoneTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = bloodStoneTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(bloodStoneTex.Get(), &srvDesc, hDescriptor);
+	
+	//next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = jadeWoodTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(jadeWoodTex.Get(), &srvDesc, hDescriptor);
+	
+	//next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = poleTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(poleTex.Get(), &srvDesc, hDescriptor);
+	
+	//next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = wellTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(wellTex.Get(), &srvDesc, hDescriptor);
 
 	// next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
@@ -688,6 +763,8 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	srvDesc.Texture2DArray.FirstArraySlice = 0;
 	srvDesc.Texture2DArray.ArraySize = treeArrayTex->GetDesc().DepthOrArraySize;
 	md3dDevice->CreateShaderResourceView(treeArrayTex.Get(), &srvDesc, hDescriptor);
+
+	
 }
 
 void TreeBillboardsApp::BuildShadersAndInputLayouts()
@@ -1333,30 +1410,78 @@ void TreeBillboardsApp::BuildMaterials()
 	water->FresnelR0 = XMFLOAT3(0.1f, 0.1f, 0.1f);
 	water->Roughness = 0.0f;
 
-	auto wirefence = std::make_unique<Material>();
-	wirefence->Name = "wirefence";
-	wirefence->MatCBIndex = 2;
-	wirefence->DiffuseSrvHeapIndex = 2;
-	wirefence->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	wirefence->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
-	wirefence->Roughness = 0.25f;
+	auto DrawBridge = std::make_unique<Material>();
+	DrawBridge->Name = "drawbridge";
+	DrawBridge->MatCBIndex = 2;
+	DrawBridge->DiffuseSrvHeapIndex = 2;
+	DrawBridge->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	DrawBridge->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	DrawBridge->Roughness = 0.25f;
+
+	auto BlackStone = std::make_unique<Material>();
+	BlackStone->Name = "blackstone";
+	BlackStone->MatCBIndex = 3;
+	BlackStone->DiffuseSrvHeapIndex = 3;
+	BlackStone->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	BlackStone->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	BlackStone->Roughness = 0.25f;
+
+	auto BloodStone = std::make_unique<Material>();
+	BloodStone->Name = "bloodstone";
+	BloodStone->MatCBIndex = 4;
+	BloodStone->DiffuseSrvHeapIndex = 4;
+	BloodStone->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	BloodStone->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	BloodStone->Roughness = 0.25f;
+
+	auto JadeWood = std::make_unique<Material>();
+	JadeWood->Name = "jadewood";
+	JadeWood->MatCBIndex = 5;
+	JadeWood->DiffuseSrvHeapIndex = 5;
+	JadeWood->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	JadeWood->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	JadeWood->Roughness = 0.25f;
+
+	auto Pole = std::make_unique<Material>();
+	Pole->Name = "pole";
+	Pole->MatCBIndex = 6;
+	Pole->DiffuseSrvHeapIndex = 6;
+	Pole->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	Pole->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	Pole->Roughness = 0.25f;
+
+	auto Well = std::make_unique<Material>();
+	Well->Name = "well";
+	Well->MatCBIndex = 7;
+	Well->DiffuseSrvHeapIndex = 7;
+	Well->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	Well->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	Well->Roughness = 0.25f;
 
 	auto treeSprites = std::make_unique<Material>();
 	treeSprites->Name = "treeSprites";
-	treeSprites->MatCBIndex = 3;
-	treeSprites->DiffuseSrvHeapIndex = 3;
+	treeSprites->MatCBIndex = 8;
+	treeSprites->DiffuseSrvHeapIndex = 8;
 	treeSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
 	treeSprites->Roughness = 0.125f;
 
+	
+
 	mMaterials["grass"] = std::move(grass);
 	mMaterials["water"] = std::move(water);
-	mMaterials["wirefence"] = std::move(wirefence);
+	mMaterials["drawbridge"] = std::move(DrawBridge);
+	mMaterials["blackstone"] = std::move(BlackStone);
+	mMaterials["bloodstone"] = std::move(BloodStone);
+	mMaterials["jadewood"] = std::move(JadeWood);
+	mMaterials["pole"] = std::move(Pole);
+	mMaterials["well"] = std::move(Well);
 	mMaterials["treeSprites"] = std::move(treeSprites);
+	
 }
 
 // Helper function to build any shape objects (Rotation is optional)
-void TreeBillboardsApp::BuildShape(string shapeName, float ScaleX, float ScaleY, float ScaleZ, float OffsetX, float OffsetY, float OffsetZ, float xRotation, float yRotation, float ZRotation)
+void TreeBillboardsApp::BuildShape(string shapeName, string textureName, float ScaleX, float ScaleY, float ScaleZ, float OffsetX, float OffsetY, float OffsetZ, float xRotation, float yRotation, float ZRotation)
 {
 	auto boxRitem = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(ScaleX * 4, ScaleY * 4, ScaleZ * 4) *
@@ -1367,7 +1492,7 @@ void TreeBillboardsApp::BuildShape(string shapeName, float ScaleX, float ScaleY,
 
 	boxRitem->ObjCBIndex = mAllRitems.size();
 
-	boxRitem->Mat = mMaterials["grass"].get();	// For later changing we will add a material string
+	boxRitem->Mat = mMaterials[textureName].get();	// For later changing we will add a material string
 
 	boxRitem->Geo = mGeometries["shapeGeo"].get();
 	boxRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -1442,79 +1567,79 @@ void TreeBillboardsApp::BuildRenderItems()
 	mAllRitems.push_back(std::move(treeSpritesRitem));
 
 	//Base
-	BuildShape("box", 20.0f, 1.0f, 20.0f, 0.0f, 0.0f, 0.0f);
+	BuildShape("box", "grass", 20.0f, 1.0f, 20.0f, 0.0f, 0.0f, 0.0f);
 
 	// Front wall 1
-	BuildShape("box", 8.0f, 5.0f, 1.0f, -6.0f, 3.0f, -9.5f);
+	BuildShape("box", "blackstone", 8.0f, 5.0f, 1.0f, -6.0f, 3.0f, -9.5f);
 	// Front wall 2
-	BuildShape("box", 8.0f, 5.0f, 1.0f, 6.0f, 3.0f, -9.5f);
+	BuildShape("box", "blackstone", 8.0f, 5.0f, 1.0f, 6.0f, 3.0f, -9.5f);
 	// Left wall
-	BuildShape("box", 1.0f, 5.0f, 20.0f, -9.5f, 3.0f, 0.0f);
+	BuildShape("box", "blackstone", 1.0f, 5.0f, 20.0f, -9.5f, 3.0f, 0.0f);
 	// Back wall
-	BuildShape("box", 20.0f, 5.0f, 1.0f, 0.0f, 3.0f, 9.5f);
+	BuildShape("box", "blackstone", 20.0f, 5.0f, 1.0f, 0.0f, 3.0f, 9.5f);
 	// Right wall
-	BuildShape("box", 1.0f, 5.0f, 20.0f, 9.5f, 3.0f, 0.0f);
+	BuildShape("box", "blackstone", 1.0f, 5.0f, 20.0f, 9.5f, 3.0f, 0.0f);
 
 	// Inner Building
-	BuildShape("box2", 6.0f, 7.0f, 6.0f, -5.0f, 4.0f, 0.0f);
+	BuildShape("box2", "bloodstone", 6.0f, 7.0f, 6.0f, -5.0f, 4.0f, 0.0f);
 	// Inner Building Roof
-	BuildShape("pyramid", 6.0f, 3.5f, 6.0f, -5.0f, 9.25f, 0.0f, 0.0f, 3.95f, 0.0f);
+	BuildShape("pyramid", "jadewood", 6.0f, 3.5f, 6.0f, -5.0f, 9.25f, 0.0f, 0.0f, 3.95f, 0.0f);
 
 	// Towers
-	BuildShape("cylinder", 2.0f, 10.0f, 2.0f, -9.5f, 4.5f, -9.5f);
-	BuildShape("cylinder", 2.0f, 10.0f, 2.0f, 9.5f, 4.5f, -9.5f);
-	BuildShape("cylinder", 2.0f, 10.0f, 2.0f, -9.5f, 4.5f, 9.5f);
-	BuildShape("cylinder", 2.0f, 10.0f, 2.0f, 9.5f, 4.5f, 9.5f);
+	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, -9.5f, 4.5f, -9.5f);
+	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, 9.5f, 4.5f, -9.5f);
+	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, -9.5f, 4.5f, 9.5f);
+	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, 9.5f, 4.5f, 9.5f);
 
 	// Tower Toppers
-	BuildShape("cone", 3.0f, 3.0f, 3.0f, 9.5f, 11.0f, 9.5f);
-	BuildShape("cone", 3.0f, 3.0f, 3.0f, -9.5f, 11.0f, 9.5f);
-	BuildShape("cone", 3.0f, 3.0f, 3.0f, 9.5f, 11.0f, -9.5f);
-	BuildShape("cone", 3.0f, 3.0f, 3.0f, -9.5f, 11.0f, -9.5f);
+	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, 9.5f, 11.0f, 9.5f);
+	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, -9.5f, 11.0f, 9.5f);
+	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, 9.5f, 11.0f, -9.5f);
+	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, -9.5f, 11.0f, -9.5f);
 
 	// Gate Decal
-	BuildShape("box2", 4.0f, 1.0f, 6.0f, 0.0f, 0.0f, -13.0f);
+	BuildShape("box2", "drawbridge", 4.0f, 1.0f, 6.0f, 0.0f, 0.0f, -13.0f);
 
 	// Stairs
-	BuildShape("wedge", 8.0f, 5.25f, 1.0f, 0.0f, 3.0f, 8.5f, 22.0);
+	BuildShape("wedge", "blackstone", 8.0f, 5.25f, 1.0f, 0.0f, 3.0f, 8.5f, 22.0);
 
 	// Fence Vertical
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -9.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -8.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -7.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -6.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -5.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -4.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -3.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 3.0f, 1.0f, -3.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 4.0f, 1.0f, -3.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 5.0f, 1.0f, -3.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 6.0f, 1.0f, -3.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 7.0f, 1.0f, -3.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 8.0f, 1.0f, -3.0f);
-	BuildShape("box2", 0.2f, 1.0f, 0.2f, 9.0f, 1.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -9.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -8.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -7.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -6.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -5.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -4.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 3.0f, 1.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 4.0f, 1.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 5.0f, 1.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 6.0f, 1.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 7.0f, 1.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 8.0f, 1.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 9.0f, 1.0f, -3.0f);
 
 	// Fence Horizontal
-	BuildShape("box2", 0.2f, 0.2f, 6.0f, 2.0f, 1.0f, -6.0f);
-	BuildShape("box2", 7.0f, 0.2f, 0.2f, 5.5f, 1.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 0.2f, 6.0f, 2.0f, 1.0f, -6.0f);
+	BuildShape("box2", "drawbridge", 7.0f, 0.2f, 0.2f, 5.5f, 1.0f, -3.0f);
 
 	// Fence Decals
-	BuildShape("diamond", 0.2f, 0.2f, 0.2f, 2.0f, 2.0f, -8.0f);
-	BuildShape("diamond", 0.2f, 0.2f, 0.2f, 2.0f, 2.0f, -6.0f);
-	BuildShape("diamond", 0.2f, 0.2f, 0.2f, 2.0f, 2.0f, -4.0f);
-	BuildShape("diamond", 0.2f, 0.2f, 0.2f, 3.0f, 2.0f, -3.0f);
-	BuildShape("diamond", 0.2f, 0.2f, 0.2f, 5.0f, 2.0f, -3.0f);
-	BuildShape("diamond", 0.2f, 0.2f, 0.2f, 7.0f, 2.0f, -3.0f);
-	BuildShape("diamond", 0.2f, 0.2f, 0.2f, 7.0f, 2.0f, -3.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 2.0f, 2.0f, -8.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 2.0f, 2.0f, -6.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 2.0f, 2.0f, -4.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 3.0f, 2.0f, -3.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 5.0f, 2.0f, -3.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 7.0f, 2.0f, -3.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 7.0f, 2.0f, -3.0f);
 
 	// Well
-	BuildShape("box2", 4.0f, 0.5f, 4.0f, 5.5f, 1.0f, -6.0f);
-	BuildShape("pipe", 1.4f, 0.5f, 1.4f, 5.5f, 1.5f, -6.0f);
+	BuildShape("box2", "blackstone", 4.0f, 0.5f, 4.0f, 5.5f, 1.0f, -6.0f);
+	BuildShape("pipe", "well", 1.4f, 0.5f, 1.4f, 5.5f, 1.5f, -6.0f);
 
 	//Flagpole
-	BuildShape("cylinder", 1.0f, 1.0f, 1.0f, 5.0f, 1.0f, 0.0f);
-	BuildShape("cylinder", 0.5f, 12.0f, 0.5f, 5.0f, 7.5f, 0.0f);
-	BuildShape("flag", 3.0f, 1.0f, 2.0f, 7.0f, 11.5f, 0.0f, 4.7f, 0.0f, 0.0f);
+	BuildShape("cylinder", "blackstone", 1.0f, 1.0f, 1.0f, 5.0f, 1.0f, 0.0f);
+	BuildShape("cylinder", "pole", 0.5f, 12.0f, 0.5f, 5.0f, 7.5f, 0.0f);
+	BuildShape("flag", "jadewood", 3.0f, 1.0f, 2.0f, 7.0f, 11.5f, 0.0f, 4.7f, 0.0f, 0.0f);
 
 }
 
