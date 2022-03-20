@@ -509,12 +509,22 @@ void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.TotalTime = gt.TotalTime();
 	mMainPassCB.DeltaTime = gt.DeltaTime();
 	mMainPassCB.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
-	mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
+	/*mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
 	mMainPassCB.Lights[0].Strength = { 0.6f, 0.6f, 0.6f };
 	mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
 	mMainPassCB.Lights[1].Strength = { 0.3f, 0.3f, 0.3f };
 	mMainPassCB.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
-	mMainPassCB.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };
+	mMainPassCB.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };*/
+
+	
+	mMainPassCB.Lights[0].Position = { 12.0f, 17.0f, -54.0f };
+	mMainPassCB.Lights[0].Strength = { 50.0f, 25.0f, 10.0f };
+	mMainPassCB.Lights[1].Position = { -12.0f, 17.0f, -54.0f };
+	mMainPassCB.Lights[1].Strength = { 50.0f, 25.0f, 10.0f };
+	mMainPassCB.Lights[2].Position = { 23.0f, 10.0f, -23.0f };
+	mMainPassCB.Lights[2].Direction = { 0.0f, -5.0f, 0.0f };
+	mMainPassCB.Lights[2].Strength = { 1.0f, 1.0f, 1.0f };
+	mMainPassCB.Lights[2].SpotPower = 0.95;
 
 	auto currPassCB = mCurrFrameResource->PassCB.get();
 	currPassCB->CopyData(0, mMainPassCB);
@@ -771,13 +781,13 @@ void TreeBillboardsApp::BuildShadersAndInputLayouts()
 {
 	const D3D_SHADER_MACRO defines[] =
 	{
-		//"FOG", "1",
+		"FOG", "1",
 		NULL, NULL
 	};
 
 	const D3D_SHADER_MACRO alphaTestDefines[] =
 	{
-		//"FOG", "1",
+		"FOG", "1",
 		"ALPHA_TEST", "1",
 		NULL, NULL
 	};
@@ -1641,6 +1651,9 @@ void TreeBillboardsApp::BuildRenderItems()
 	BuildShape("cylinder", "pole", 0.5f, 12.0f, 0.5f, 5.0f, 7.5f, 0.0f);
 	BuildShape("flag", "jadewood", 3.0f, 1.0f, 2.0f, 7.0f, 11.5f, 0.0f, 4.7f, 0.0f, 0.0f);
 
+	//Torchs
+	BuildShape("cylinder", "blackstone", 0.25f, 3.0f, 0.25f, -3.0f, 1.7f, -13.0f);
+	BuildShape("cylinder", "blackstone", 0.25f, 3.0f, 0.25f, 3.0f, 1.7f, -13.0f);
 }
 
 void TreeBillboardsApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems)
