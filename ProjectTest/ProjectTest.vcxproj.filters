@@ -128,4 +128,9 @@
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Textures\QBert_Icon.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

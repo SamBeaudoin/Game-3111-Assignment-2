@@ -117,12 +117,15 @@ private:
     void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems);
 
 
-	void BuildShape(string shapeName, string textureName, float ScaleX, float ScaleY, float ScaleZ, float OffsetX, float OffsetY, float OffsetZ, float xRotaion = 0.0f, float yRotation = 0.0f, float ZRotation = 0.0f);
+	void BuildShape(string shapeName, string textureName,	float ScaleX, float ScaleY, float ScaleZ, float OffsetX, float OffsetY, float OffsetZ,
+															float xRotaion = 0.0f, float yRotation = 0.0f, float ZRotation = 0.0f,
+															float xTexScale = 1.0f, float yTexScale = 1.0f, float zTexScale = 1.0f);
 
 
 	std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers();
 
     float GetHillsHeight(float x, float z)const;
+	float GetHillsHeight(float x, float z, float i)const;
     XMFLOAT3 GetHillsNormal(float x, float z)const;
 
 private:
@@ -635,6 +638,13 @@ void TreeBillboardsApp::LoadTextures()
 		mCommandList.Get(), treeArrayTex->Filename.c_str(),
 		treeArrayTex->Resource, treeArrayTex->UploadHeap));
 
+	auto qubeTex = std::make_unique<Texture>();
+	qubeTex->Name = "quebertTex";
+	qubeTex->Filename = L"../../Textures/QBert_Icon.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), qubeTex->Filename.c_str(),
+		qubeTex->Resource, qubeTex->UploadHeap));
+
 	mTextures[grassTex->Name] = std::move(grassTex);
 	mTextures[waterTex->Name] = std::move(waterTex);
 	mTextures[drawBrigeTex->Name] = std::move(drawBrigeTex);
@@ -644,6 +654,7 @@ void TreeBillboardsApp::LoadTextures()
 	mTextures[poleTex->Name] = std::move(poleTex);
 	mTextures[wellTex->Name] = std::move(wellTex);
 	mTextures[treeArrayTex->Name] = std::move(treeArrayTex);
+	mTextures[qubeTex->Name] = std::move(qubeTex);
 }
 
 void TreeBillboardsApp::BuildRootSignature()
@@ -692,7 +703,7 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 9;
+	srvHeapDesc.NumDescriptors = 10;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -710,6 +721,7 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	auto jadeWoodTex = mTextures["jadeWoodTex"]->Resource;
 	auto poleTex = mTextures["poleTex"]->Resource;
 	auto wellTex = mTextures["wellTex"]->Resource;
+	auto quebertTex = mTextures["quebertTex"]->Resource;
 	auto treeArrayTex = mTextures["treeArrayTex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -762,6 +774,12 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	srvDesc.Format = wellTex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(wellTex.Get(), &srvDesc, hDescriptor);
 
+	//next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = quebertTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(quebertTex.Get(), &srvDesc, hDescriptor);
+
 	// next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 
@@ -781,13 +799,13 @@ void TreeBillboardsApp::BuildShadersAndInputLayouts()
 {
 	const D3D_SHADER_MACRO defines[] =
 	{
-		"FOG", "1",
+		//"FOG", "1",
 		NULL, NULL
 	};
 
 	const D3D_SHADER_MACRO alphaTestDefines[] =
 	{
-		"FOG", "1",
+		//"FOG", "1",
 		"ALPHA_TEST", "1",
 		NULL, NULL
 	};
@@ -1060,10 +1078,40 @@ void TreeBillboardsApp::BuildShapeGeometry()
 	mGeometries[geo->Name] = std::move(geo);
 }
 
+float TreeBillboardsApp::GetHillsHeight(float x, float z)const
+{
+	return 0.3f * (z * sinf(0.1f * x) + x * cosf(0.1f * z));
+}
+
+float TreeBillboardsApp::GetHillsHeight(float x, float z, float i)const
+{
+	if (fabsf(x) > 85 || fabsf(z) > 85)
+		return -35.0f;
+	if (fabsf(x) > 83 || fabsf(z) > 83)
+		return -8.0f;
+	else
+		return (sin(0.3f * x) + cos(0.3f * z));
+}
+
+
+XMFLOAT3 TreeBillboardsApp::GetHillsNormal(float x, float z)const
+{
+	// n = (-df/dx, 1, -df/dz)
+	XMFLOAT3 n(
+		-0.03f * z * cosf(0.1f * x) - 0.3f * cosf(0.1f * z),
+		1.0f,
+		-0.3f * sinf(0.1f * x) + 0.03f * x * sinf(0.1f * z));
+
+	XMVECTOR unitNormal = XMVector3Normalize(XMLoadFloat3(&n));
+	XMStoreFloat3(&n, unitNormal);
+
+	return n;
+}
+
 void TreeBillboardsApp::BuildLandGeometry()
 {
     GeometryGenerator geoGen;
-    GeometryGenerator::MeshData grid = geoGen.CreateGrid(160.0f, 160.0f, 50, 50);
+    GeometryGenerator::MeshData grid = geoGen.CreateGrid(200.0f, 200.0f, 50, 50);
 
     //
     // Extract the vertex elements we are interested and apply the height function to
@@ -1076,7 +1124,7 @@ void TreeBillboardsApp::BuildLandGeometry()
     {
         auto& p = grid.Vertices[i].Position;
         vertices[i].Pos = p;
-		vertices[i].Pos.y = 1.0f; //GetHillsHeight(p.x, p.z);
+		vertices[i].Pos.y = GetHillsHeight(p.x, p.z, p.x);
 		vertices[i].Normal = XMFLOAT3(0.0f, 1.0f, 0.0f);//GetHillsNormal(p.x, p.z);
 		vertices[i].TexC = grid.Vertices[i].TexC;
     }
@@ -1230,14 +1278,16 @@ void TreeBillboardsApp::BuildTreeSpritesGeometry()
 		XMFLOAT2 Size;
 	};
 
-	static const int treeCount = 16;
-	std::array<TreeSpriteVertex, 16> vertices;
+	static const int treeCount = 24;
+	std::array<TreeSpriteVertex, 24> vertices;
 
 	// For Ring of trees
 	float dTheta = 2.0f * XM_PI / treeCount;
 	float TreeRadius = 75.0f;
 	for(UINT i = 0; i < treeCount; ++i)
 	{
+		if (i == 18)
+			continue;
 		float x = TreeRadius * cosf(i * dTheta);
 		float z = TreeRadius * sinf(i * dTheta);
 
@@ -1252,10 +1302,12 @@ void TreeBillboardsApp::BuildTreeSpritesGeometry()
 		vertices[i].Size = XMFLOAT2(20.0f, 20.0f);
 	}
 
-	std::array<std::uint16_t, 16> indices =
+	std::array<std::uint16_t, 24> indices =
 	{
 		0, 1, 2, 3, 4, 5, 6, 7,
-		8, 9, 10, 11, 12, 13, 14, 15
+		8, 9, 10, 11, 12, 13, 14, 15,
+		16, 17, 18, 19, 20, 21,
+		22, 23
 	};
 
 	const UINT vbByteSize = (UINT)vertices.size() * sizeof(TreeSpriteVertex);
@@ -1468,15 +1520,21 @@ void TreeBillboardsApp::BuildMaterials()
 	Well->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	Well->Roughness = 0.25f;
 
+	auto Quebert = std::make_unique<Material>();
+	Quebert->Name = "quebert";
+	Quebert->MatCBIndex = 8;
+	Quebert->DiffuseSrvHeapIndex = 8;
+	Quebert->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	Quebert->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	Quebert->Roughness = 0.25f;
+
 	auto treeSprites = std::make_unique<Material>();
 	treeSprites->Name = "treeSprites";
-	treeSprites->MatCBIndex = 8;
-	treeSprites->DiffuseSrvHeapIndex = 8;
+	treeSprites->MatCBIndex = 9;
+	treeSprites->DiffuseSrvHeapIndex = 9;
 	treeSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
 	treeSprites->Roughness = 0.125f;
-
-	
 
 	mMaterials["grass"] = std::move(grass);
 	mMaterials["water"] = std::move(water);
@@ -1487,18 +1545,22 @@ void TreeBillboardsApp::BuildMaterials()
 	mMaterials["pole"] = std::move(Pole);
 	mMaterials["well"] = std::move(Well);
 	mMaterials["treeSprites"] = std::move(treeSprites);
+	mMaterials["quebert"] = std::move(Quebert);
 	
 }
 
 // Helper function to build any shape objects (Rotation is optional)
-void TreeBillboardsApp::BuildShape(string shapeName, string textureName, float ScaleX, float ScaleY, float ScaleZ, float OffsetX, float OffsetY, float OffsetZ, float xRotation, float yRotation, float ZRotation)
+void TreeBillboardsApp::BuildShape(string shapeName, string textureName,	float ScaleX, float ScaleY, float ScaleZ, 
+																			float OffsetX, float OffsetY, float OffsetZ, 
+																			float xRotation, float yRotation, float ZRotation,
+																			float xTexScale, float yTexScale, float zTexScale)
 {
 	auto boxRitem = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(ScaleX * 4, ScaleY * 4, ScaleZ * 4) *
 		XMMatrixRotationRollPitchYaw(xRotation, yRotation, ZRotation) *
 		XMMatrixTranslation(OffsetX * 4, OffsetY * 4, OffsetZ * 4));
 
-	XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(ScaleX, ScaleY, ScaleZ));
+	XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(xTexScale, xTexScale, xTexScale));
 
 	boxRitem->ObjCBIndex = mAllRitems.size();
 
@@ -1518,7 +1580,8 @@ void TreeBillboardsApp::BuildShape(string shapeName, string textureName, float S
 void TreeBillboardsApp::BuildRenderItems()
 {
     auto wavesRitem = std::make_unique<RenderItem>();
-    wavesRitem->World = MathHelper::Identity4x4();
+	XMStoreFloat4x4(&wavesRitem->World, XMMatrixScaling(5.0f, 1.0f, 5.0f) *
+		XMMatrixTranslation(0.0f, -5.0f, 0.0f));
 	XMStoreFloat4x4(&wavesRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
 	wavesRitem->ObjCBIndex = 0;
 	wavesRitem->Mat = mMaterials["water"].get();
@@ -1531,6 +1594,8 @@ void TreeBillboardsApp::BuildRenderItems()
     mWavesRitem = wavesRitem.get();
 
 	mRitemLayer[(int)RenderLayer::Transparent].push_back(wavesRitem.get());
+
+	
 
     auto gridRitem = std::make_unique<RenderItem>();
     gridRitem->World = MathHelper::Identity4x4();
@@ -1545,18 +1610,21 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem.get());
 
-	/*
-	XMStoreFloat4x4(&boxRitem->World, XMMatrixTranslation(3.0f, 2.0f, -9.0f));
-	boxRitem->ObjCBIndex = 2;
-	boxRitem->Mat = mMaterials["wirefence"].get();
-	boxRitem->Geo = mGeometries["boxGeo"].get();
-	boxRitem->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
-	boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
-	boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
-	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(boxRitem.get());
-	auto boxRitem = std::make_unique<RenderItem>();
-	*/
+	auto wavesRitem2 = std::make_unique<RenderItem>();
+	XMStoreFloat4x4(&wavesRitem2->World, XMMatrixScaling(0.04f, 1.0f, 0.04f) *
+		XMMatrixTranslation(5.5f*4, 1.5f*4, -6.0f*4));
+	XMStoreFloat4x4(&wavesRitem2->TexTransform, XMMatrixScaling(0.5f, 0.5f, 0.5f));
+	wavesRitem2->ObjCBIndex = 2;
+	wavesRitem2->Mat = mMaterials["water"].get();
+	wavesRitem2->Geo = mGeometries["waterGeo"].get();
+	wavesRitem2->PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	wavesRitem2->IndexCount = wavesRitem2->Geo->DrawArgs["grid"].IndexCount;
+	wavesRitem2->StartIndexLocation = wavesRitem2->Geo->DrawArgs["grid"].StartIndexLocation;
+	wavesRitem2->BaseVertexLocation = wavesRitem2->Geo->DrawArgs["grid"].BaseVertexLocation;
+
+	mWavesRitem = wavesRitem2.get();
+
+	mRitemLayer[(int)RenderLayer::Transparent].push_back(wavesRitem2.get());
 
 	auto treeSpritesRitem = std::make_unique<RenderItem>();
 	treeSpritesRitem->World = MathHelper::Identity4x4();
@@ -1573,11 +1641,11 @@ void TreeBillboardsApp::BuildRenderItems()
 
     mAllRitems.push_back(std::move(wavesRitem));
     mAllRitems.push_back(std::move(gridRitem));
-	//mAllRitems.push_back(std::move(boxRitem));
+	mAllRitems.push_back(std::move(wavesRitem2));
 	mAllRitems.push_back(std::move(treeSpritesRitem));
 
 	//Base
-	BuildShape("box", "grass", 20.0f, 1.0f, 20.0f, 0.0f, 0.0f, 0.0f);
+	BuildShape("box", "jadewood", 20.0f, 1.0f, 20.0f, 0.0f, 0.0f, 0.0f);
 
 	// Front wall 1
 	BuildShape("box", "blackstone", 8.0f, 5.0f, 1.0f, -6.0f, 3.0f, -9.5f);
@@ -1588,7 +1656,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	// Back wall
 	BuildShape("box", "blackstone", 20.0f, 5.0f, 1.0f, 0.0f, 3.0f, 9.5f);
 	// Right wall
-	BuildShape("box", "blackstone", 1.0f, 5.0f, 20.0f, 9.5f, 3.0f, 0.0f);
+	BuildShape("box", "blackstone", 1.0f, 5.0f, 20.0f, 9.5f, 3.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 20.0f);
 
 	// Inner Building
 	BuildShape("box2", "bloodstone", 6.0f, 7.0f, 6.0f, -5.0f, 4.0f, 0.0f);
@@ -1611,7 +1679,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	BuildShape("box2", "drawbridge", 4.0f, 1.0f, 6.0f, 0.0f, 0.0f, -13.0f);
 
 	// Stairs
-	BuildShape("wedge", "blackstone", 8.0f, 5.25f, 1.0f, 0.0f, 3.0f, 8.5f, 22.0);
+	BuildShape("wedge", "pole", 8.0f, 5.25f, 1.0f, 0.0f, 3.0f, 8.5f, 22.0);
 
 	// Fence Vertical
 	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -9.0f);
@@ -1650,6 +1718,8 @@ void TreeBillboardsApp::BuildRenderItems()
 	BuildShape("cylinder", "blackstone", 1.0f, 1.0f, 1.0f, 5.0f, 1.0f, 0.0f);
 	BuildShape("cylinder", "pole", 0.5f, 12.0f, 0.5f, 5.0f, 7.5f, 0.0f);
 	BuildShape("flag", "jadewood", 3.0f, 1.0f, 2.0f, 7.0f, 11.5f, 0.0f, 4.7f, 0.0f, 0.0f);
+	//Flag Decal
+	BuildShape("box", "quebert", 1.70f, 1.70f, 1.05f, 6.9f, 11.5f, 0.0f);
 
 	//Torchs
 	BuildShape("cylinder", "blackstone", 0.25f, 3.0f, 0.25f, -3.0f, 1.7f, -13.0f);
@@ -1745,21 +1815,4 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> TreeBillboardsApp::GetStaticSam
 		anisotropicWrap, anisotropicClamp };
 }
 
-float TreeBillboardsApp::GetHillsHeight(float x, float z)const
-{
-    return 0.3f*(z*sinf(0.1f*x) + x*cosf(0.1f*z));
-}
 
-XMFLOAT3 TreeBillboardsApp::GetHillsNormal(float x, float z)const
-{
-    // n = (-df/dx, 1, -df/dz)
-    XMFLOAT3 n(
-        -0.03f*z*cosf(0.1f*x) - 0.3f*cosf(0.1f*z),
-        1.0f,
-        -0.3f*sinf(0.1f*x) + 0.03f*x*sinf(0.1f*z));
-
-    XMVECTOR unitNormal = XMVector3Normalize(XMLoadFloat3(&n));
-    XMStoreFloat3(&n, unitNormal);
-
-    return n;
-}
