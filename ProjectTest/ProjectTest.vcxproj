@@ -239,7 +239,13 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\..\Textures\QBert_Icon-removebg-preview.png" />
     <Image Include="..\..\Textures\QBert_Icon.jpg" />
+    <Image Include="..\..\Textures\trees_128x64_no_shadow-33.png" />
+    <Image Include="..\..\Textures\trees_128x64_no_shadow-35.png" />
+    <Image Include="..\..\Textures\trees_128x64_no_shadow-39.png" />
+    <Image Include="..\..\Textures\trees_128x64_no_shadow-43.png" />
+    <Image Include="..\..\Textures\trees_128x64_no_shadow-45.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

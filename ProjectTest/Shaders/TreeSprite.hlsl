@@ -170,7 +170,7 @@ void GS(point VertexOut gin[1], //PrimitiveType InputVertexType InputName[NumEle
 //step6
 float4 PS(GeoOut pin) : SV_Target
 {
-	float3 uvw = float3(pin.TexC, pin.PrimID%3);
+	float3 uvw = float3(pin.TexC, pin.PrimID%5);
     float4 diffuseAlbedo = gTreeMapArray.Sample(gsamAnisotropicWrap, uvw) * gDiffuseAlbedo;
 
     //using dynamic indexing

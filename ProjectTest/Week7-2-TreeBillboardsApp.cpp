@@ -219,7 +219,7 @@ bool TreeBillboardsApp::Initialize()
     mCbvSrvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     mWaves = std::make_unique<Waves>(128, 128, 1.0f, 0.03f, 4.0f, 0.2f);
- 
+	
 	LoadTextures();
     BuildRootSignature();
 	BuildDescriptorHeaps();
@@ -633,7 +633,7 @@ void TreeBillboardsApp::LoadTextures()
 
 	auto treeArrayTex = std::make_unique<Texture>();
 	treeArrayTex->Name = "treeArrayTex";
-	treeArrayTex->Filename = L"../../Textures/treeArray.dds";
+	treeArrayTex->Filename = L"../../Textures/treeArr.dds";
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
 		mCommandList.Get(), treeArrayTex->Filename.c_str(),
 		treeArrayTex->Resource, treeArrayTex->UploadHeap));
@@ -799,13 +799,13 @@ void TreeBillboardsApp::BuildShadersAndInputLayouts()
 {
 	const D3D_SHADER_MACRO defines[] =
 	{
-		"FOG", "1",
+		//"FOG", "1",
 		NULL, NULL
 	};
 
 	const D3D_SHADER_MACRO alphaTestDefines[] =
 	{
-		"FOG", "1",
+		//"FOG", "1",
 		"ALPHA_TEST", "1",
 		NULL, NULL
 	};
@@ -1296,10 +1296,10 @@ void TreeBillboardsApp::BuildTreeSpritesGeometry()
 		float y = 1.0f;//GetHillsHeight(x, z);
 
 		// Move tree slightly above land height.
-		y += 8.0f;
+		y += 23.0f;
 
 		vertices[i].Pos = XMFLOAT3(x, y, z);
-		vertices[i].Size = XMFLOAT2(20.0f, 20.0f);
+		vertices[i].Size = XMFLOAT2(20.0f, 60.0f);
 	}
 
 	std::array<std::uint16_t, 24> indices =
@@ -1546,7 +1546,6 @@ void TreeBillboardsApp::BuildMaterials()
 	mMaterials["well"] = std::move(Well);
 	mMaterials["treeSprites"] = std::move(treeSprites);
 	mMaterials["quebert"] = std::move(Quebert);
-	
 }
 
 // Helper function to build any shape objects (Rotation is optional)
@@ -1582,7 +1581,7 @@ void TreeBillboardsApp::BuildRenderItems()
     auto wavesRitem = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&wavesRitem->World, XMMatrixScaling(5.0f, 1.0f, 5.0f) *
 		XMMatrixTranslation(0.0f, -5.0f, 0.0f));
-	XMStoreFloat4x4(&wavesRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
+	XMStoreFloat4x4(&wavesRitem->TexTransform, XMMatrixScaling(20.0f, 20.0f, 20.0f));
 	wavesRitem->ObjCBIndex = 0;
 	wavesRitem->Mat = mMaterials["water"].get();
 	wavesRitem->Geo = mGeometries["waterGeo"].get();
@@ -1594,8 +1593,6 @@ void TreeBillboardsApp::BuildRenderItems()
     mWavesRitem = wavesRitem.get();
 
 	mRitemLayer[(int)RenderLayer::Transparent].push_back(wavesRitem.get());
-
-	
 
     auto gridRitem = std::make_unique<RenderItem>();
     gridRitem->World = MathHelper::Identity4x4();

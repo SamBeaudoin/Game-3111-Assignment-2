@@ -132,5 +132,23 @@
     <Image Include="..\..\Textures\QBert_Icon.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\..\Textures\trees_128x64_no_shadow-33.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Textures\trees_128x64_no_shadow-35.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Textures\trees_128x64_no_shadow-39.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Textures\trees_128x64_no_shadow-43.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Textures\trees_128x64_no_shadow-45.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\Textures\QBert_Icon-removebg-preview.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
