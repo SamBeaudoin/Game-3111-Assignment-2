@@ -631,6 +631,13 @@ void TreeBillboardsApp::LoadTextures()
 		mCommandList.Get(), wellTex->Filename.c_str(),
 		wellTex->Resource, wellTex->UploadHeap));
 
+	auto headgeTex = std::make_unique<Texture>();
+	headgeTex->Name = "headgeTex";
+	headgeTex->Filename = L"../../Textures/Headge.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), headgeTex->Filename.c_str(),
+		headgeTex->Resource, headgeTex->UploadHeap));
+
 	auto treeArrayTex = std::make_unique<Texture>();
 	treeArrayTex->Name = "treeArrayTex";
 	treeArrayTex->Filename = L"../../Textures/treeArr.dds";
@@ -653,6 +660,7 @@ void TreeBillboardsApp::LoadTextures()
 	mTextures[jadeWoodTex->Name] = std::move(jadeWoodTex);
 	mTextures[poleTex->Name] = std::move(poleTex);
 	mTextures[wellTex->Name] = std::move(wellTex);
+	mTextures[headgeTex->Name] = std::move(headgeTex);
 	mTextures[treeArrayTex->Name] = std::move(treeArrayTex);
 	mTextures[qubeTex->Name] = std::move(qubeTex);
 }
@@ -703,7 +711,7 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 10;
+	srvHeapDesc.NumDescriptors = 11;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -721,6 +729,7 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	auto jadeWoodTex = mTextures["jadeWoodTex"]->Resource;
 	auto poleTex = mTextures["poleTex"]->Resource;
 	auto wellTex = mTextures["wellTex"]->Resource;
+	auto headgeTex = mTextures["headgeTex"]->Resource;
 	auto quebertTex = mTextures["quebertTex"]->Resource;
 	auto treeArrayTex = mTextures["treeArrayTex"]->Resource;
 
@@ -773,6 +782,12 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 
 	srvDesc.Format = wellTex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(wellTex.Get(), &srvDesc, hDescriptor);
+
+	//next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+
+	srvDesc.Format = headgeTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(headgeTex.Get(), &srvDesc, hDescriptor);
 
 	//next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
@@ -1520,18 +1535,26 @@ void TreeBillboardsApp::BuildMaterials()
 	Well->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	Well->Roughness = 0.25f;
 
+	auto Headge = std::make_unique<Material>();
+	Headge->Name = "headge";
+	Headge->MatCBIndex = 8;
+	Headge->DiffuseSrvHeapIndex = 8;
+	Headge->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	Headge->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	Headge->Roughness = 0.25f;
+
 	auto Quebert = std::make_unique<Material>();
 	Quebert->Name = "quebert";
-	Quebert->MatCBIndex = 8;
-	Quebert->DiffuseSrvHeapIndex = 8;
+	Quebert->MatCBIndex = 9;
+	Quebert->DiffuseSrvHeapIndex = 9;
 	Quebert->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	Quebert->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	Quebert->Roughness = 0.25f;
 
 	auto treeSprites = std::make_unique<Material>();
 	treeSprites->Name = "treeSprites";
-	treeSprites->MatCBIndex = 9;
-	treeSprites->DiffuseSrvHeapIndex = 9;
+	treeSprites->MatCBIndex = 10;
+	treeSprites->DiffuseSrvHeapIndex = 10;
 	treeSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
 	treeSprites->Roughness = 0.125f;
@@ -1544,8 +1567,9 @@ void TreeBillboardsApp::BuildMaterials()
 	mMaterials["jadewood"] = std::move(JadeWood);
 	mMaterials["pole"] = std::move(Pole);
 	mMaterials["well"] = std::move(Well);
-	mMaterials["treeSprites"] = std::move(treeSprites);
+	mMaterials["headge"] = std::move(Headge);
 	mMaterials["quebert"] = std::move(Quebert);
+	mMaterials["treeSprites"] = std::move(treeSprites);
 }
 
 // Helper function to build any shape objects (Rotation is optional)
@@ -1555,9 +1579,9 @@ void TreeBillboardsApp::BuildShape(string shapeName, string textureName,	float S
 																			float xTexScale, float yTexScale, float zTexScale)
 {
 	auto boxRitem = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(ScaleX * 4, ScaleY * 4, ScaleZ * 4) *
+	XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(ScaleX * 1, ScaleY * 1, ScaleZ * 1) *
 		XMMatrixRotationRollPitchYaw(xRotation, yRotation, ZRotation) *
-		XMMatrixTranslation(OffsetX * 4, OffsetY * 4, OffsetZ * 4));
+		XMMatrixTranslation(OffsetX * 1, OffsetY * 1, OffsetZ * 1));
 
 	XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(xTexScale, xTexScale, xTexScale));
 
@@ -1721,6 +1745,59 @@ void TreeBillboardsApp::BuildRenderItems()
 	//Torchs
 	BuildShape("cylinder", "blackstone", 0.25f, 3.0f, 0.25f, -3.0f, 1.7f, -13.0f);
 	BuildShape("cylinder", "blackstone", 0.25f, 3.0f, 0.25f, 3.0f, 1.7f, -13.0f);
+
+	//Maze
+	/*Maze exit*/
+	BuildShape("box", "headge", 11.0f, 3.0f, 1.0f, -7.0f, 3.0f, -20.5f);
+	BuildShape("box", "headge", 11.0f, 3.0f, 1.0f, 7.0f, 3.0f, -20.5f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 42.0f, -13.0f, 3.0f, 0.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 42.0f, 13.0f, 3.0f, 0.0f);
+	BuildShape("box", "headge", 25.0f, 3.0f, 1.0f, 0.0f, 3.0f, 20.5f);
+
+	/*Maze Enterence*/
+	BuildShape("box", "headge", 59.0f, 3.0f, 1.0f, 0.0f, 3.0f, -40.5f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 82.0f, -30.0f, 3.0f, 0.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 82.0f, 30.0f, 3.0f, 0.0f);
+	BuildShape("box", "headge", 59.0f, 3.0f, 1.0f, 0.0f, 3.0f, 40.5f);
+
+	/*The Maze*/
+	BuildShape("box", "headge", 25.0f, 3.0f, 1.0f, 0.0f, 3.0f, -27.5f);
+	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -23.0f, 3.0f, -20.5f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 13.0f, -23.0f, 3.0f, -20.5f);
+	BuildShape("box", "headge", 11.0f, 3.0f, 1.0f, -18.0f, 3.0f, -27.5f);
+	BuildShape("box", "headge", 7.0f, 3.0f, 1.0f, 16.0f, 3.0f, -27.5f);
+	BuildShape("box", "headge", 7.0f, 3.0f, 1.0f, 17.0f, 3.0f, -20.5f);
+	BuildShape("box", "headge", 4.0f, 3.0f, 1.0f, 25.0f, 3.0f, -20.5f);
+	BuildShape("box", "headge", 7.0f, 3.0f, 1.0f, 23.0f, 3.0f, -27.5f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, 23.5f, 3.0f, -24.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, 23.5f, 3.0f, -17.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, 19.5f, 3.0f, -11.0f);
+	BuildShape("box", "headge", 4.0f, 3.0f, 1.0f, 21.0f, 3.0f, -14.5f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 40.0f, 19.5f, 3.0f, 12.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -13.0f, 3.0f, -24.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 15.0f, -23.0f, 3.0f, 0.0f);
+	BuildShape("box", "headge", 6.0f, 3.0f, 1.0f, 23.0f, 3.0f, 35.0f);
+	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, 14.0f, 3.0f, 31.5f);
+	//BuildShape("box", "headge", 1.0f, 3.0f, 5.0f, 8.5f, 6.0f, 33.5f);
+	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, 3.0f, 3.0f, 35.5f);//
+	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, -10.0f, 3.0f, 35.5f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 5.0f, -1.5f, 3.0f, 32.5f);
+	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, -7.0f, 3.0f, 30.5f);
+	//BuildShape("box", "headge", 1.0f, 3.0f, 9.0f, -6.5f, 3.0f, 25.5f);
+	BuildShape("box", "headge", 6.0f, 3.0f, 1.0f, -26.5f, 3.0f, 0.0f);
+	//BuildShape("box", "headge", 3.0f, 3.0f, 1.0f, -18.0f, 3.0f, -8.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 40.0f, -18.5f, 3.0f, -1.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -15.5f, 3.0f, 33.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -18.5f, 3.0f, 22.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 4.0f, -18.5f, 3.0f, 27.0f);
+	BuildShape("box", "headge", 4.0f, 3.0f, 1.0f, -17.0f, 3.0f, 29.5f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 9.0f, -11.5f, 3.0f, 25.5f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 8.0f, 3.0f, 3.0f, 25.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 34.0f, 25.0f, 3.0f, 17.5f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 4.0f, 19.5f, 3.0f, 34.0f);
+	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -23.0f, 3.0f, 20.5f);
+	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -20.0f, 3.0f, 35.5f);
+
 }
 
 void TreeBillboardsApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems)
