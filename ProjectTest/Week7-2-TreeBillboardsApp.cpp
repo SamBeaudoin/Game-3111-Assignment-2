@@ -511,7 +511,7 @@ void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.FarZ = 1000.0f;
 	mMainPassCB.TotalTime = gt.TotalTime();
 	mMainPassCB.DeltaTime = gt.DeltaTime();
-	mMainPassCB.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
+	mMainPassCB.AmbientLight = { 0.375f, 0.375f, 0.4f, 1.0f };
 	/*mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
 	mMainPassCB.Lights[0].Strength = { 0.6f, 0.6f, 0.6f };
 	mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
@@ -519,15 +519,14 @@ void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
 	mMainPassCB.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };*/
 
-	
 	mMainPassCB.Lights[0].Position = { 12.0f, 17.0f, -54.0f };
 	mMainPassCB.Lights[0].Strength = { 50.0f, 25.0f, 10.0f };
 	mMainPassCB.Lights[1].Position = { -12.0f, 17.0f, -54.0f };
 	mMainPassCB.Lights[1].Strength = { 50.0f, 25.0f, 10.0f };
-	mMainPassCB.Lights[2].Position = { 23.0f, 10.0f, -23.0f };
-	mMainPassCB.Lights[2].Direction = { 0.0f, -5.0f, 0.0f };
-	mMainPassCB.Lights[2].Strength = { 1.0f, 1.0f, 1.0f };
-	mMainPassCB.Lights[2].SpotPower = 0.95;
+	mMainPassCB.Lights[2].Position = { 5.5f, 10.0f, -6.0f };
+	mMainPassCB.Lights[2].Direction = { 0.0f, -1.0f, 0.0f };
+	mMainPassCB.Lights[2].Strength = { 2.0f, 2.0f, 2.0f };
+	mMainPassCB.Lights[2].SpotPower = 1.0;
 
 	auto currPassCB = mCurrFrameResource->PassCB.get();
 	currPassCB->CopyData(0, mMainPassCB);
@@ -1105,7 +1104,7 @@ float TreeBillboardsApp::GetHillsHeight(float x, float z, float i)const
 	if (fabsf(x) > 83 || fabsf(z) > 83)
 		return -8.0f;
 	else
-		return (sin(0.3f * x) + cos(0.3f * z));
+		return (sin(0.01f * x) + cos(0.01f * z) + 1);
 }
 
 
@@ -1311,7 +1310,7 @@ void TreeBillboardsApp::BuildTreeSpritesGeometry()
 		float y = 1.0f;//GetHillsHeight(x, z);
 
 		// Move tree slightly above land height.
-		y += 23.0f;
+		y += 25.0f;
 
 		vertices[i].Pos = XMFLOAT3(x, y, z);
 		vertices[i].Size = XMFLOAT2(20.0f, 60.0f);
@@ -1579,11 +1578,11 @@ void TreeBillboardsApp::BuildShape(string shapeName, string textureName,	float S
 																			float xTexScale, float yTexScale, float zTexScale)
 {
 	auto boxRitem = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(ScaleX * 1, ScaleY * 1, ScaleZ * 1) *
+	XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(ScaleX, ScaleY, ScaleZ) *
 		XMMatrixRotationRollPitchYaw(xRotation, yRotation, ZRotation) *
-		XMMatrixTranslation(OffsetX * 1, OffsetY * 1, OffsetZ * 1));
+		XMMatrixTranslation(OffsetX, OffsetY, OffsetZ));
 
-	XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(xTexScale, xTexScale, xTexScale));
+	XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(xTexScale, yTexScale, zTexScale));
 
 	boxRitem->ObjCBIndex = mAllRitems.size();
 
@@ -1620,7 +1619,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
     auto gridRitem = std::make_unique<RenderItem>();
     gridRitem->World = MathHelper::Identity4x4();
-	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
+	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(15.0f, 15.0f, 15.0f));
 	gridRitem->ObjCBIndex = 1;
 	gridRitem->Mat = mMaterials["grass"].get();
 	gridRitem->Geo = mGeometries["landGeo"].get();
@@ -1632,8 +1631,8 @@ void TreeBillboardsApp::BuildRenderItems()
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(gridRitem.get());
 
 	auto wavesRitem2 = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&wavesRitem2->World, XMMatrixScaling(0.04f, 1.0f, 0.04f) *
-		XMMatrixTranslation(5.5f*4, 1.5f*4, -6.0f*4));
+	XMStoreFloat4x4(&wavesRitem2->World, XMMatrixScaling(0.015f, 1.0f, 0.015f) *
+		XMMatrixTranslation(5.5f, 3.5f, -6.0f));
 	XMStoreFloat4x4(&wavesRitem2->TexTransform, XMMatrixScaling(0.5f, 0.5f, 0.5f));
 	wavesRitem2->ObjCBIndex = 2;
 	wavesRitem2->Mat = mMaterials["water"].get();
@@ -1666,137 +1665,137 @@ void TreeBillboardsApp::BuildRenderItems()
 	mAllRitems.push_back(std::move(treeSpritesRitem));
 
 	//Base
-	BuildShape("box", "jadewood", 20.0f, 1.0f, 20.0f, 0.0f, 0.0f, 0.0f);
+	BuildShape("box", "jadewood", 20.0f, 1.0f, 20.0f, 0.0f, 2.0f, 0.0f);
 
 	// Front wall 1
-	BuildShape("box", "blackstone", 8.0f, 5.0f, 1.0f, -6.0f, 3.0f, -9.5f);
+	BuildShape("box", "blackstone", 8.0f, 5.0f, 1.0f, -6.0f, 5.0f, -9.5f);
 	// Front wall 2
-	BuildShape("box", "blackstone", 8.0f, 5.0f, 1.0f, 6.0f, 3.0f, -9.5f);
+	BuildShape("box", "blackstone", 8.0f, 5.0f, 1.0f, 6.0f, 5.0f, -9.5f);
 	// Left wall
-	BuildShape("box", "blackstone", 1.0f, 5.0f, 20.0f, -9.5f, 3.0f, 0.0f);
+	BuildShape("box", "blackstone", 1.0f, 5.0f, 20.0f, -9.5f, 5.0f, 0.0f);
 	// Back wall
-	BuildShape("box", "blackstone", 20.0f, 5.0f, 1.0f, 0.0f, 3.0f, 9.5f);
+	BuildShape("box", "blackstone", 20.0f, 5.0f, 1.0f, 0.0f, 5.0f, 9.5f);
 	// Right wall
-	BuildShape("box", "blackstone", 1.0f, 5.0f, 20.0f, 9.5f, 3.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 20.0f);
+	BuildShape("box", "blackstone", 1.0f, 5.0f, 20.0f, 9.5f, 5.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 20.0f);
 
 	// Inner Building
-	BuildShape("box2", "bloodstone", 6.0f, 7.0f, 6.0f, -5.0f, 4.0f, 0.0f);
+	BuildShape("box2", "bloodstone", 6.0f, 7.0f, 6.0f, -5.0f, 6.0f, 0.0f);
 	// Inner Building Roof
-	BuildShape("pyramid", "jadewood", 6.0f, 3.5f, 6.0f, -5.0f, 9.25f, 0.0f, 0.0f, 3.95f, 0.0f);
+	BuildShape("pyramid", "jadewood", 6.0f, 3.5f, 6.0f, -5.0f, 11.25f, 0.0f, 0.0f, 3.95f, 0.0f);
 
 	// Towers
-	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, -9.5f, 4.5f, -9.5f);
-	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, 9.5f, 4.5f, -9.5f);
-	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, -9.5f, 4.5f, 9.5f);
-	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, 9.5f, 4.5f, 9.5f);
+	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, -9.5f, 6.5f, -9.5f);
+	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, 9.5f, 6.5f, -9.5f);
+	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, -9.5f, 6.5f, 9.5f);
+	BuildShape("cylinder", "bloodstone", 2.0f, 10.0f, 2.0f, 9.5f, 6.5f, 9.5f);
 
 	// Tower Toppers
-	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, 9.5f, 11.0f, 9.5f);
-	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, -9.5f, 11.0f, 9.5f);
-	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, 9.5f, 11.0f, -9.5f);
-	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, -9.5f, 11.0f, -9.5f);
+	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, 9.5f, 13.0f, 9.5f);
+	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, -9.5f, 13.0f, 9.5f);
+	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, 9.5f, 13.0f, -9.5f);
+	BuildShape("cone", "jadewood", 3.0f, 3.0f, 3.0f, -9.5f, 13.0f, -9.5f);
 
 	// Gate Decal
-	BuildShape("box2", "drawbridge", 4.0f, 1.0f, 6.0f, 0.0f, 0.0f, -13.0f);
+	BuildShape("box2", "drawbridge", 4.0f, 1.0f, 6.0f, 0.0f, 2.0f, -13.0f);
 
 	// Stairs
-	BuildShape("wedge", "pole", 8.0f, 5.25f, 1.0f, 0.0f, 3.0f, 8.5f, 22.0);
+	BuildShape("wedge", "pole", 8.0f, 5.25f, 1.0f, 0.0f, 5.0f, 8.5f, 22.0);
 
 	// Fence Vertical
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -9.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -8.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -7.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -6.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -5.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -4.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 1.0f, -3.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 3.0f, 1.0f, -3.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 4.0f, 1.0f, -3.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 5.0f, 1.0f, -3.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 6.0f, 1.0f, -3.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 7.0f, 1.0f, -3.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 8.0f, 1.0f, -3.0f);
-	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 9.0f, 1.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 3.0f, -9.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 3.0f, -8.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 3.0f, -7.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 3.0f, -6.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 3.0f, -5.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 3.0f, -4.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 2.0f, 3.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 3.0f, 3.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 4.0f, 3.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 5.0f, 3.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 6.0f, 3.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 7.0f, 3.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 8.0f, 3.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 1.0f, 0.2f, 9.0f, 3.0f, -3.0f);
 
 	// Fence Horizontal
-	BuildShape("box2", "drawbridge", 0.2f, 0.2f, 6.0f, 2.0f, 1.0f, -6.0f);
-	BuildShape("box2", "drawbridge", 7.0f, 0.2f, 0.2f, 5.5f, 1.0f, -3.0f);
+	BuildShape("box2", "drawbridge", 0.2f, 0.2f, 6.0f, 2.0f, 3.0f, -6.0f);
+	BuildShape("box2", "drawbridge", 7.0f, 0.2f, 0.2f, 5.5f, 3.0f, -3.0f);
 
 	// Fence Decals
-	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 2.0f, 2.0f, -8.0f);
-	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 2.0f, 2.0f, -6.0f);
-	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 2.0f, 2.0f, -4.0f);
-	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 3.0f, 2.0f, -3.0f);
-	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 5.0f, 2.0f, -3.0f);
-	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 7.0f, 2.0f, -3.0f);
-	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 7.0f, 2.0f, -3.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 2.0f, 4.0f, -8.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 2.0f, 4.0f, -6.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 2.0f, 4.0f, -4.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 3.0f, 4.0f, -3.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 5.0f, 4.0f, -3.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 7.0f, 4.0f, -3.0f);
+	BuildShape("diamond", "bloodstone", 0.2f, 0.2f, 0.2f, 7.0f, 4.0f, -3.0f);
 
 	// Well
-	BuildShape("box2", "blackstone", 4.0f, 0.5f, 4.0f, 5.5f, 1.0f, -6.0f);
-	BuildShape("pipe", "well", 1.4f, 0.5f, 1.4f, 5.5f, 1.5f, -6.0f);
+	BuildShape("box2", "blackstone", 4.0f, 0.5f, 4.0f, 5.5f, 3.0f, -6.0f);
+	BuildShape("pipe", "well", 1.4f, 0.5f, 1.4f, 5.5f, 3.5f, -6.0f);
 
 	//Flagpole
-	BuildShape("cylinder", "blackstone", 1.0f, 1.0f, 1.0f, 5.0f, 1.0f, 0.0f);
-	BuildShape("cylinder", "pole", 0.5f, 12.0f, 0.5f, 5.0f, 7.5f, 0.0f);
-	BuildShape("flag", "jadewood", 3.0f, 1.0f, 2.0f, 7.0f, 11.5f, 0.0f, 4.7f, 0.0f, 0.0f);
+	BuildShape("cylinder", "blackstone", 1.0f, 1.0f, 1.0f, 5.0f, 3.0f, 0.0f);
+	BuildShape("cylinder", "pole", 0.5f, 12.0f, 0.5f, 5.0f, 9.5f, 0.0f);
+	BuildShape("flag", "jadewood", 3.0f, 1.0f, 2.0f, 7.0f, 13.5f, 0.0f, 4.7f, 0.0f, 0.0f);
 	//Flag Decal
-	BuildShape("box", "quebert", 1.70f, 1.70f, 1.05f, 6.9f, 11.5f, 0.0f);
+	BuildShape("box", "quebert", 1.70f, 1.70f, 1.05f, 6.9f, 13.5f, 0.0f);
 
 	//Torchs
-	BuildShape("cylinder", "blackstone", 0.25f, 3.0f, 0.25f, -3.0f, 1.7f, -13.0f);
-	BuildShape("cylinder", "blackstone", 0.25f, 3.0f, 0.25f, 3.0f, 1.7f, -13.0f);
+	BuildShape("cylinder", "blackstone", 0.25f, 3.0f, 0.25f, -3.0f, 3.7f, -13.0f);
+	BuildShape("cylinder", "blackstone", 0.25f, 3.0f, 0.25f, 3.0f, 3.7f, -13.0f);
 
 	//Maze
 	/*Maze exit*/
-	BuildShape("box", "headge", 11.0f, 3.0f, 1.0f, -7.0f, 3.0f, -20.5f);
-	BuildShape("box", "headge", 11.0f, 3.0f, 1.0f, 7.0f, 3.0f, -20.5f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 42.0f, -13.0f, 3.0f, 0.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 42.0f, 13.0f, 3.0f, 0.0f);
-	BuildShape("box", "headge", 25.0f, 3.0f, 1.0f, 0.0f, 3.0f, 20.5f);
+	BuildShape("box", "headge", 11.0f, 3.0f, 1.0f, -7.0f, 3.0f, -20.5f	,0.0f,0.0f,0.0f, 11.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 11.0f, 3.0f, 1.0f, 7.0f, 3.0f, -20.5f	,0.0f,0.0f,0.0f, 11.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 42.0f, -13.0f, 3.0f, 0.0f	,0.0f,0.0f,0.0f, 42.0f, 3.0f, 42.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 42.0f, 13.0f, 3.0f, 0.0f	,0.0f,0.0f,0.0f, 42.0f, 3.0f, 42.0f);
+	BuildShape("box", "headge", 25.0f, 3.0f, 1.0f, 0.0f, 3.0f, 20.5f	,0.0f,0.0f,0.0f, 25.0f, 3.0f, 1.0f);
 
 	/*Maze Enterence*/
-	BuildShape("box", "headge", 59.0f, 3.0f, 1.0f, 0.0f, 3.0f, -40.5f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 82.0f, -30.0f, 3.0f, 0.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 82.0f, 30.0f, 3.0f, 0.0f);
-	BuildShape("box", "headge", 59.0f, 3.0f, 1.0f, 0.0f, 3.0f, 40.5f);
-
-	/*The Maze*/
-	BuildShape("box", "headge", 25.0f, 3.0f, 1.0f, 0.0f, 3.0f, -27.5f);
-	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -23.0f, 3.0f, -20.5f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 13.0f, -23.0f, 3.0f, -20.5f);
-	BuildShape("box", "headge", 11.0f, 3.0f, 1.0f, -18.0f, 3.0f, -27.5f);
-	BuildShape("box", "headge", 7.0f, 3.0f, 1.0f, 16.0f, 3.0f, -27.5f);
-	BuildShape("box", "headge", 7.0f, 3.0f, 1.0f, 17.0f, 3.0f, -20.5f);
-	BuildShape("box", "headge", 4.0f, 3.0f, 1.0f, 25.0f, 3.0f, -20.5f);
-	BuildShape("box", "headge", 7.0f, 3.0f, 1.0f, 23.0f, 3.0f, -27.5f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, 23.5f, 3.0f, -24.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, 23.5f, 3.0f, -17.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, 19.5f, 3.0f, -11.0f);
-	BuildShape("box", "headge", 4.0f, 3.0f, 1.0f, 21.0f, 3.0f, -14.5f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 40.0f, 19.5f, 3.0f, 12.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -13.0f, 3.0f, -24.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 15.0f, -23.0f, 3.0f, 0.0f);
-	BuildShape("box", "headge", 6.0f, 3.0f, 1.0f, 23.0f, 3.0f, 35.0f);
-	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, 14.0f, 3.0f, 31.5f);
-	//BuildShape("box", "headge", 1.0f, 3.0f, 5.0f, 8.5f, 6.0f, 33.5f);
-	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, 3.0f, 3.0f, 35.5f);//
-	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, -10.0f, 3.0f, 35.5f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 5.0f, -1.5f, 3.0f, 32.5f);
-	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, -7.0f, 3.0f, 30.5f);
-	//BuildShape("box", "headge", 1.0f, 3.0f, 9.0f, -6.5f, 3.0f, 25.5f);
-	BuildShape("box", "headge", 6.0f, 3.0f, 1.0f, -26.5f, 3.0f, 0.0f);
-	//BuildShape("box", "headge", 3.0f, 3.0f, 1.0f, -18.0f, 3.0f, -8.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 40.0f, -18.5f, 3.0f, -1.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -15.5f, 3.0f, 33.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -18.5f, 3.0f, 22.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 4.0f, -18.5f, 3.0f, 27.0f);
-	BuildShape("box", "headge", 4.0f, 3.0f, 1.0f, -17.0f, 3.0f, 29.5f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 9.0f, -11.5f, 3.0f, 25.5f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 8.0f, 3.0f, 3.0f, 25.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 34.0f, 25.0f, 3.0f, 17.5f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 4.0f, 19.5f, 3.0f, 34.0f);
-	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -23.0f, 3.0f, 20.5f);
-	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -20.0f, 3.0f, 35.5f);
+	BuildShape("box", "headge", 59.0f, 3.0f, 1.0f, 0.0f, 3.0f, -40.5f	,0.0f,0.0f,0.0f, 59.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 82.0f, -30.0f, 3.0f, 0.0f	,0.0f,0.0f,0.0f, 82.0f, 3.0f, 82.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 82.0f, 30.0f, 3.0f, 0.0f	,0.0f,0.0f,0.0f, 82.0f, 3.0f, 82.0f);
+	BuildShape("box", "headge", 59.0f, 3.0f, 1.0f, 0.0f, 3.0f, 40.5f	,0.0f,0.0f,0.0f, 59.0f, 3.0f, 1.0f);
+																					   
+	/*The Maze*/																	   
+	BuildShape("box", "headge", 25.0f, 3.0f, 1.0f, 0.0f, 3.0f, -27.5f	,0.0f,0.0f,0.0f, 25.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -23.0f, 3.0f, -20.5f	,0.0f,0.0f,0.0f, 8.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 13.0f, -23.0f, 3.0f, -20.5f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 13.0f);
+	BuildShape("box", "headge", 11.0f, 3.0f, 1.0f, -18.0f, 3.0f, -27.5f	,0.0f,0.0f,0.0f, 11.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 7.0f, 3.0f, 1.0f, 16.0f, 3.0f, -27.5f	,0.0f,0.0f,0.0f, 7.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 7.0f, 3.0f, 1.0f, 17.0f, 3.0f, -20.5f	,0.0f,0.0f,0.0f, 7.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 4.0f, 3.0f, 1.0f, 25.0f, 3.0f, -20.5f	,0.0f,0.0f,0.0f, 4.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 7.0f, 3.0f, 1.0f, 23.0f, 3.0f, -27.5f	,0.0f,0.0f,0.0f, 7.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, 23.5f, 3.0f, -24.0f	,0.0f,0.0f,0.0f, 6.0f, 3.0f, 6.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, 23.5f, 3.0f, -17.0f	, 0.0f, 0.0f, 0.0f, 6.0f, 3.0f, 6.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, 19.5f, 3.0f, -11.0f	, 0.0f, 0.0f, 0.0f, 6.0f, 3.0f, 6.0f);
+	BuildShape("box", "headge", 4.0f, 3.0f, 1.0f, 21.0f, 3.0f, -14.5f	,0.0f,0.0f,0.0f, 4.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 40.0f, 19.5f, 3.0f, 12.0f	,0.0f,0.0f,0.0f, 40.0f, 3.0f, 40.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -13.0f, 3.0f, -24.0f	,0.0f,0.0f,0.0f, 6.0f, 3.0f, 6.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 15.0f, -23.0f, 3.0f, 0.0f	,0.0f,0.0f,0.0f, 15.0f, 3.0f, 15.0f);
+	BuildShape("box", "headge", 6.0f, 3.0f, 1.0f, 23.0f, 3.0f, 35.0f	,0.0f,0.0f,0.0f, 6.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, 14.0f, 3.0f, 31.5f	,0.0f,0.0f,0.0f, 10.0f, 3.0f, 1.0f);
+	//BuildShape("box", "headge", 1.0f, 3.0f, 5.0f, 8.5f, 6.0f, 33.5f);				   
+	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, 3.0f, 3.0f, 35.5f	,0.0f,0.0f,0.0f, 10.0f, 3.0f, 1.0f);//
+	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, -10.0f, 3.0f, 35.5f	,0.0f,0.0f,0.0f, 10.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 5.0f, -1.5f, 3.0f, 32.5f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 5.0f);
+	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, -7.0f, 3.0f, 30.5f	,0.0f,0.0f,0.0f, 10.0f, 3.0f, 1.0f);
+	//BuildShape("box", "headge", 1.0f, 3.0f, 9.0f, -6.5f, 3.0f, 25.5f);			   
+	BuildShape("box", "headge", 6.0f, 3.0f, 1.0f, -26.5f, 3.0f, 0.0f	,0.0f,0.0f,0.0f, 6.0f, 3.0f, 1.0f);
+	//BuildShape("box", "headge", 3.0f, 3.0f, 1.0f, -18.0f, 3.0f, -8.0f);			   
+	BuildShape("box", "headge", 1.0f, 3.0f, 40.0f, -18.5f, 3.0f, -1.0f	,0.0f,0.0f,0.0f, 40.0f, 3.0f, 40.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -15.5f, 3.0f, 33.0f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 6.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -18.5f, 3.0f, 22.0f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 6.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 4.0f, -18.5f, 3.0f, 27.0f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 4.0f);
+	BuildShape("box", "headge", 4.0f, 3.0f, 1.0f, -17.0f, 3.0f, 29.5f	,0.0f,0.0f,0.0f, 4.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 9.0f, -11.5f, 3.0f, 25.5f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 9.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 8.0f, 3.0f, 3.0f, 25.0f		,0.0f,0.0f,0.0f, 1.0f, 3.0f, 8.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 34.0f, 25.0f, 3.0f, 17.5f	,0.0f,0.0f,0.0f, 34.0f, 3.0f, 34.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 4.0f, 19.5f, 3.0f, 34.0f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 4.0f);
+	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -23.0f, 3.0f, 20.5f	,0.0f,0.0f,0.0f, 8.0f, 3.0f, 1.0f);
+	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -20.0f, 3.0f, 35.5f	,0.0f,0.0f,0.0f, 8.0f, 3.0f, 1.0f);
 
 }
 
