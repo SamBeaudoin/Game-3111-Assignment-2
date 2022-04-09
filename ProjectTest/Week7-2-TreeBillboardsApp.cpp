@@ -58,6 +58,8 @@ struct RenderItem
     // Primitive topology.
     D3D12_PRIMITIVE_TOPOLOGY PrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
+	BoundingBox mBoundingBox;
+
     // DrawIndexedInstanced parameters.
     UINT IndexCount = 0;
     UINT StartIndexLocation = 0;
@@ -100,6 +102,7 @@ private:
 	void UpdateMainPassCB(const GameTimer& gt);
 	void UpdateWaves(const GameTimer& gt); 
 
+	void AABBCheck();
 	void LoadTextures();
     void BuildRootSignature();
 	void BuildDescriptorHeaps();
@@ -172,6 +175,8 @@ private:
 
 	Camera mCamera;
 
+	BoundingBox mCameraBoundingBox;
+
     POINT mLastMousePos;
 };
 
@@ -224,7 +229,7 @@ bool TreeBillboardsApp::Initialize()
     mWaves = std::make_unique<Waves>(128, 128, 1.0f, 0.03f, 4.0f, 0.2f);
 
 	// Set Camera Position
-	mCamera.SetPosition(0.0f, 2.0f, -15.0f);
+	mCamera.SetPosition(0.0f, 3.0f, -15.0f);
 	
 	LoadTextures();
     BuildRootSignature();
@@ -287,6 +292,49 @@ void TreeBillboardsApp::Update(const GameTimer& gt)
 	UpdateMaterialCBs(gt);
 	UpdateMainPassCB(gt);
     UpdateWaves(gt);
+	AABBCheck();
+}
+
+void TreeBillboardsApp::AABBCheck()
+{
+	XMStoreFloat3(&mCameraBoundingBox.Center, XMVectorSet(	mCamera.GetPosition3f().x,
+															mCamera.GetPosition3f().y,
+															mCamera.GetPosition3f().z, 1.0f));
+
+	XMStoreFloat3(&mCameraBoundingBox.Extents, XMVectorSet(1.1, 1.1, 1.1, 1.0f));
+
+	for (auto& e : mAllRitems)
+	{
+		if (mCameraBoundingBox.Intersects(e->mBoundingBox) && e->Mat->Name == "headge")
+		{
+
+			if (e->mBoundingBox.Center.x - e->mBoundingBox.Extents.x >= mCameraBoundingBox.Center.x)
+			{
+					mCamera.SetPosition(MathHelper::Min(mCamera.GetPosition3f().x, e->mBoundingBox.Center.x - e->mBoundingBox.Extents.x - mCameraBoundingBox.Extents.x),
+					mCamera.GetPosition3f().y,
+					mCamera.GetPosition3f().z);
+			}else if(e->mBoundingBox.Center.x + e->mBoundingBox.Extents.x <= mCameraBoundingBox.Center.x)
+			{
+					mCamera.SetPosition(MathHelper::Max(mCamera.GetPosition3f().x, e->mBoundingBox.Center.x + e->mBoundingBox.Extents.x + mCameraBoundingBox.Extents.x),
+					mCamera.GetPosition3f().y,
+					mCamera.GetPosition3f().z);
+			}
+			if (e->mBoundingBox.Center.z - e->mBoundingBox.Extents.z >= mCameraBoundingBox.Center.z)
+			{
+					mCamera.SetPosition(
+					mCamera.GetPosition3f().x,
+					mCamera.GetPosition3f().y,
+					MathHelper::Min(mCamera.GetPosition3f().z, e->mBoundingBox.Center.z - e->mBoundingBox.Extents.z - mCameraBoundingBox.Extents.z));
+			}
+			else if (e->mBoundingBox.Center.z + e->mBoundingBox.Extents.z <= mCameraBoundingBox.Center.z)
+			{
+					mCamera.SetPosition(
+					mCamera.GetPosition3f().x,
+					mCamera.GetPosition3f().y,
+					MathHelper::Max(mCamera.GetPosition3f().z, e->mBoundingBox.Center.z + e->mBoundingBox.Extents.z + mCameraBoundingBox.Extents.z));
+			}
+		}
+	}
 }
 
 void TreeBillboardsApp::Draw(const GameTimer& gt)
@@ -1626,6 +1674,14 @@ void TreeBillboardsApp::BuildShape(string shapeName, string textureName,	float S
 	boxRitem->IndexCount = boxRitem->Geo->DrawArgs[shapeName].IndexCount;  //36
 	boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs[shapeName].StartIndexLocation; //0
 	boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs[shapeName].BaseVertexLocation; //0
+
+
+	boxRitem->mBoundingBox.Transform(boxRitem->mBoundingBox, XMMatrixScaling(ScaleX / 2, ScaleY / 2, ScaleZ / 2)
+		* XMMatrixRotationX(xRotation)
+		* XMMatrixRotationY(yRotation)
+		* XMMatrixRotationZ(ZRotation) *
+		XMMatrixTranslation(OffsetX, OffsetY, OffsetZ));
+
 
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(boxRitem.get());
 
