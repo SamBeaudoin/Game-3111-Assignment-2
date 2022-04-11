@@ -229,7 +229,7 @@ bool TreeBillboardsApp::Initialize()
     mWaves = std::make_unique<Waves>(128, 128, 1.0f, 0.03f, 4.0f, 0.2f);
 
 	// Set Camera Position
-	mCamera.SetPosition(0.0f, 3.0f, -15.0f);
+	mCamera.SetPosition(0.0f, 4.0f, -15.0f);
 	
 	LoadTextures();
     BuildRootSignature();
@@ -598,15 +598,15 @@ void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.AmbientLight = { 0.375f, 0.375f, 0.4f, 1.0f };
 	/*mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
 	mMainPassCB.Lights[0].Strength = { 0.6f, 0.6f, 0.6f };
-	mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
-	mMainPassCB.Lights[1].Strength = { 0.3f, 0.3f, 0.3f };
+	mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };	Torch1	0.25f, 3.0f, 0.25f, -3.0f, 3.7f, -13.0f);
+	mMainPassCB.Lights[1].Strength = { 0.3f, 0.3f, 0.3f };					Torch2	0.25f, 3.0f, 0.25f, 3.0f, 3.7f, -13.0f);
 	mMainPassCB.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
 	mMainPassCB.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };*/
 
-	mMainPassCB.Lights[0].Position = { 12.0f, 17.0f, -54.0f };
-	mMainPassCB.Lights[0].Strength = { 50.0f, 25.0f, 10.0f };
-	mMainPassCB.Lights[1].Position = { -12.0f, 17.0f, -54.0f };
-	mMainPassCB.Lights[1].Strength = { 50.0f, 25.0f, 10.0f };
+	mMainPassCB.Lights[0].Position = { 3.0f, 6.0f, -13.0f };
+	mMainPassCB.Lights[0].Strength = { 1.0f, 0.5f, 0.0f };
+	mMainPassCB.Lights[1].Position = { -3.0f, 6.0f, -13.0f };
+	mMainPassCB.Lights[1].Strength = { 1.0f, 0.5f, 0.0f };
 	mMainPassCB.Lights[2].Position = { 5.5f, 10.0f, -6.0f };
 	mMainPassCB.Lights[2].Direction = { 0.0f, -1.0f, 0.0f };
 	mMainPassCB.Lights[2].Strength = { 2.0f, 2.0f, 2.0f };
@@ -1394,10 +1394,10 @@ void TreeBillboardsApp::BuildTreeSpritesGeometry()
 		float y = 1.0f;//GetHillsHeight(x, z);
 
 		// Move tree slightly above land height.
-		y += 25.0f;
+		y += 17.5f;
 
 		vertices[i].Pos = XMFLOAT3(x, y, z);
-		vertices[i].Size = XMFLOAT2(20.0f, 60.0f);
+		vertices[i].Size = XMFLOAT2(20.0f, 40.0f);
 	}
 
 	std::array<std::uint16_t, 24> indices =
@@ -1859,7 +1859,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	/*The Maze*/																	   
 	BuildShape("box", "headge", 25.0f, 3.0f, 1.0f, 0.0f, 3.0f, -27.5f	,0.0f,0.0f,0.0f, 25.0f, 3.0f, 1.0f);
 	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -23.0f, 3.0f, -20.5f	,0.0f,0.0f,0.0f, 8.0f, 3.0f, 1.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 13.0f, -23.0f, 3.0f, -20.5f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 13.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 13.0f, -23.0f, 3.0f, -20.5f	,0.0f,0.0f,0.0f, 13.0f, 3.0f, 13.0f);
 	BuildShape("box", "headge", 11.0f, 3.0f, 1.0f, -18.0f, 3.0f, -27.5f	,0.0f,0.0f,0.0f, 11.0f, 3.0f, 1.0f);
 	BuildShape("box", "headge", 7.0f, 3.0f, 1.0f, 16.0f, 3.0f, -27.5f	,0.0f,0.0f,0.0f, 7.0f, 3.0f, 1.0f);
 	BuildShape("box", "headge", 7.0f, 3.0f, 1.0f, 17.0f, 3.0f, -20.5f	,0.0f,0.0f,0.0f, 7.0f, 3.0f, 1.0f);
@@ -1877,20 +1877,20 @@ void TreeBillboardsApp::BuildRenderItems()
 	//BuildShape("box", "headge", 1.0f, 3.0f, 5.0f, 8.5f, 6.0f, 33.5f);				   
 	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, 3.0f, 3.0f, 35.5f	,0.0f,0.0f,0.0f, 10.0f, 3.0f, 1.0f);//
 	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, -10.0f, 3.0f, 35.5f	,0.0f,0.0f,0.0f, 10.0f, 3.0f, 1.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 5.0f, -1.5f, 3.0f, 32.5f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 5.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 5.0f, -1.5f, 3.0f, 32.5f	,0.0f,0.0f,0.0f, 5.0f, 3.0f, 5.0f);
 	BuildShape("box", "headge", 10.0f, 3.0f, 1.0f, -7.0f, 3.0f, 30.5f	,0.0f,0.0f,0.0f, 10.0f, 3.0f, 1.0f);
 	//BuildShape("box", "headge", 1.0f, 3.0f, 9.0f, -6.5f, 3.0f, 25.5f);			   
 	BuildShape("box", "headge", 6.0f, 3.0f, 1.0f, -26.5f, 3.0f, 0.0f	,0.0f,0.0f,0.0f, 6.0f, 3.0f, 1.0f);
 	//BuildShape("box", "headge", 3.0f, 3.0f, 1.0f, -18.0f, 3.0f, -8.0f);			   
 	BuildShape("box", "headge", 1.0f, 3.0f, 40.0f, -18.5f, 3.0f, -1.0f	,0.0f,0.0f,0.0f, 40.0f, 3.0f, 40.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -15.5f, 3.0f, 33.0f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 6.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -18.5f, 3.0f, 22.0f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 6.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 4.0f, -18.5f, 3.0f, 27.0f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 4.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -15.5f, 3.0f, 33.0f	,0.0f,0.0f,0.0f, 6.0f, 3.0f, 6.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 6.0f, -18.5f, 3.0f, 22.0f	,0.0f,0.0f,0.0f, 6.0f, 3.0f, 6.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 4.0f, -18.5f, 3.0f, 27.0f	,0.0f,0.0f,0.0f, 4.0f, 3.0f, 4.0f);
 	BuildShape("box", "headge", 4.0f, 3.0f, 1.0f, -17.0f, 3.0f, 29.5f	,0.0f,0.0f,0.0f, 4.0f, 3.0f, 1.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 9.0f, -11.5f, 3.0f, 25.5f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 9.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 8.0f, 3.0f, 3.0f, 25.0f		,0.0f,0.0f,0.0f, 1.0f, 3.0f, 8.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 9.0f, -11.5f, 3.0f, 25.5f	,0.0f,0.0f,0.0f, 9.0f, 3.0f, 9.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 8.0f, 3.0f, 3.0f, 25.0f		,0.0f,0.0f,0.0f, 8.0f, 3.0f, 8.0f);
 	BuildShape("box", "headge", 1.0f, 3.0f, 34.0f, 25.0f, 3.0f, 17.5f	,0.0f,0.0f,0.0f, 34.0f, 3.0f, 34.0f);
-	BuildShape("box", "headge", 1.0f, 3.0f, 4.0f, 19.5f, 3.0f, 34.0f	,0.0f,0.0f,0.0f, 1.0f, 3.0f, 4.0f);
+	BuildShape("box", "headge", 1.0f, 3.0f, 4.0f, 19.5f, 3.0f, 34.0f	,0.0f,0.0f,0.0f, 4.0f, 3.0f, 4.0f);
 	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -23.0f, 3.0f, 20.5f	,0.0f,0.0f,0.0f, 8.0f, 3.0f, 1.0f);
 	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -20.0f, 3.0f, 35.5f	,0.0f,0.0f,0.0f, 8.0f, 3.0f, 1.0f);
 
