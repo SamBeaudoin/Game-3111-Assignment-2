@@ -312,32 +312,42 @@ void TreeBillboardsApp::AABBCheck()
 
 			if (e->mBoundingBox.Center.x - e->mBoundingBox.Extents.x >= CameraCenterX)
 			{
-				// Set limit for camera on X plane by repositioning camera
-					mCamera.SetPosition(MathHelper::Min(mCamera.GetPosition3f().x, e->mBoundingBox.Center.x - e->mBoundingBox.Extents.x - mCameraBoundingBox.Extents.x),
+				// Set limit for camera on X plane by camera's pos - box extents
+				float LimitX = e->mBoundingBox.Center.x - e->mBoundingBox.Extents.x - mCameraBoundingBox.Extents.x;
+				// Apply Limitation
+					mCamera.SetPosition(MathHelper::Min(mCamera.GetPosition3f().x, LimitX),
 					mCamera.GetPosition3f().y,
 					mCamera.GetPosition3f().z);
+
 			}else if(e->mBoundingBox.Center.x + e->mBoundingBox.Extents.x <= CameraCenterX)
 			{
-				// Set limit for camera on X plane by repositioning camera
-					mCamera.SetPosition(MathHelper::Max(mCamera.GetPosition3f().x, e->mBoundingBox.Center.x + e->mBoundingBox.Extents.x + mCameraBoundingBox.Extents.x),
+				// Set limit for camera on X plane by camera's pos - box extents
+				float LimitX = e->mBoundingBox.Center.x + e->mBoundingBox.Extents.x + mCameraBoundingBox.Extents.x;
+				// Apply Limitation
+					mCamera.SetPosition(MathHelper::Max(mCamera.GetPosition3f().x, LimitX),
 					mCamera.GetPosition3f().y,
 					mCamera.GetPosition3f().z);
+
 			}
 			if (e->mBoundingBox.Center.z - e->mBoundingBox.Extents.z >= CameraCenterZ)
 			{
-				// Set limit for camera on Z plane by repositioning camera
+				// Set limit for camera on Z plane by camera's pos - box extents
+				float LimitZ = e->mBoundingBox.Center.z - e->mBoundingBox.Extents.z - mCameraBoundingBox.Extents.z;
+				// Apply Limitation
 					mCamera.SetPosition(
 					mCamera.GetPosition3f().x,
 					mCamera.GetPosition3f().y,
-					MathHelper::Min(mCamera.GetPosition3f().z, e->mBoundingBox.Center.z - e->mBoundingBox.Extents.z - mCameraBoundingBox.Extents.z));
+					MathHelper::Min(mCamera.GetPosition3f().z, LimitZ));
 			}
 			else if (e->mBoundingBox.Center.z + e->mBoundingBox.Extents.z <= CameraCenterZ)
 			{
-				// Set limit for camera on Z plane by repositioning camera
+				// Set limit for camera on Z plane by camera's pos - box extents
+				float LimitZ = e->mBoundingBox.Center.z + e->mBoundingBox.Extents.z + mCameraBoundingBox.Extents.z;
+				// Apply Limitation
 					mCamera.SetPosition(
 					mCamera.GetPosition3f().x,
 					mCamera.GetPosition3f().y,
-					MathHelper::Max(mCamera.GetPosition3f().z, e->mBoundingBox.Center.z + e->mBoundingBox.Extents.z + mCameraBoundingBox.Extents.z));
+					MathHelper::Max(mCamera.GetPosition3f().z, LimitZ));
 			}
 		}
 	}
