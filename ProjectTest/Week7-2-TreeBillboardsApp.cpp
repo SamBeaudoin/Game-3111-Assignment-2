@@ -307,27 +307,33 @@ void TreeBillboardsApp::AABBCheck()
 	{
 		if (mCameraBoundingBox.Intersects(e->mBoundingBox) && e->Mat->Name == "headge")
 		{
+			float CameraCenterX = mCameraBoundingBox.Center.x;
+			float CameraCenterZ = mCameraBoundingBox.Center.z;
 
-			if (e->mBoundingBox.Center.x - e->mBoundingBox.Extents.x >= mCameraBoundingBox.Center.x)
+			if (e->mBoundingBox.Center.x - e->mBoundingBox.Extents.x >= CameraCenterX)
 			{
+				// Set limit for camera on X plane by repositioning camera
 					mCamera.SetPosition(MathHelper::Min(mCamera.GetPosition3f().x, e->mBoundingBox.Center.x - e->mBoundingBox.Extents.x - mCameraBoundingBox.Extents.x),
 					mCamera.GetPosition3f().y,
 					mCamera.GetPosition3f().z);
-			}else if(e->mBoundingBox.Center.x + e->mBoundingBox.Extents.x <= mCameraBoundingBox.Center.x)
+			}else if(e->mBoundingBox.Center.x + e->mBoundingBox.Extents.x <= CameraCenterX)
 			{
+				// Set limit for camera on X plane by repositioning camera
 					mCamera.SetPosition(MathHelper::Max(mCamera.GetPosition3f().x, e->mBoundingBox.Center.x + e->mBoundingBox.Extents.x + mCameraBoundingBox.Extents.x),
 					mCamera.GetPosition3f().y,
 					mCamera.GetPosition3f().z);
 			}
-			if (e->mBoundingBox.Center.z - e->mBoundingBox.Extents.z >= mCameraBoundingBox.Center.z)
+			if (e->mBoundingBox.Center.z - e->mBoundingBox.Extents.z >= CameraCenterZ)
 			{
+				// Set limit for camera on Z plane by repositioning camera
 					mCamera.SetPosition(
 					mCamera.GetPosition3f().x,
 					mCamera.GetPosition3f().y,
 					MathHelper::Min(mCamera.GetPosition3f().z, e->mBoundingBox.Center.z - e->mBoundingBox.Extents.z - mCameraBoundingBox.Extents.z));
 			}
-			else if (e->mBoundingBox.Center.z + e->mBoundingBox.Extents.z <= mCameraBoundingBox.Center.z)
+			else if (e->mBoundingBox.Center.z + e->mBoundingBox.Extents.z <= CameraCenterZ)
 			{
+				// Set limit for camera on Z plane by repositioning camera
 					mCamera.SetPosition(
 					mCamera.GetPosition3f().x,
 					mCamera.GetPosition3f().y,
