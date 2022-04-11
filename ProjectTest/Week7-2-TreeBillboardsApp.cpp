@@ -473,6 +473,9 @@ void TreeBillboardsApp::OnKeyboardInput(const GameTimer& gt)
 	if (GetAsyncKeyState('D') & 0x8000)
 		mCamera.Strafe(10.0f * dt);
 
+	if (GetAsyncKeyState('Q') & 0x8000)
+		mCamera.SetCanFly(!mCamera.GetCanFly());
+
 	mCamera.UpdateViewMatrix();
 }
  
@@ -1847,7 +1850,12 @@ void TreeBillboardsApp::BuildRenderItems()
 	BuildShape("box", "headge", 1.0f, 3.0f, 82.0f, -30.0f, 3.0f, 0.0f	,0.0f,0.0f,0.0f, 82.0f, 3.0f, 82.0f);
 	BuildShape("box", "headge", 1.0f, 3.0f, 82.0f, 30.0f, 3.0f, 0.0f	,0.0f,0.0f,0.0f, 82.0f, 3.0f, 82.0f);
 	BuildShape("box", "headge", 59.0f, 3.0f, 1.0f, 0.0f, 3.0f, 40.5f	,0.0f,0.0f,0.0f, 59.0f, 3.0f, 1.0f);
-																					   
+			
+
+	//BuildShape("box", "headge", 59.0f, 3.0f, 1.0f, 0.0f, 13.0f, -43.5f, 0.0f, 0.0f, 0.0f, 59.0f, 3.0f, 30.0f);
+	//BuildShape("box", "headge", 1.0f, 3.0f, 82.0f, -30.0f, 13.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 3.0f, 30.0f);
+
+
 	/*The Maze*/																	   
 	BuildShape("box", "headge", 25.0f, 3.0f, 1.0f, 0.0f, 3.0f, -27.5f	,0.0f,0.0f,0.0f, 25.0f, 3.0f, 1.0f);
 	BuildShape("box", "headge", 8.0f, 3.0f, 1.0f, -23.0f, 3.0f, -20.5f	,0.0f,0.0f,0.0f, 8.0f, 3.0f, 1.0f);
