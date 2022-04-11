@@ -301,7 +301,7 @@ void TreeBillboardsApp::AABBCheck()
 															mCamera.GetPosition3f().y,
 															mCamera.GetPosition3f().z, 1.0f));
 
-	XMStoreFloat3(&mCameraBoundingBox.Extents, XMVectorSet(1.1, 1.1, 1.1, 1.0f));
+	XMStoreFloat3(&mCameraBoundingBox.Extents, XMVectorSet(1.15, 1.15, 1.15, 1.0f));
 
 	for (auto& e : mAllRitems)
 	{
